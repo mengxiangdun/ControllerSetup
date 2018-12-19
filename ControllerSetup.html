@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kaanh EtherCat</title>
+    <link rel='stylesheet' href='./style.css' />
+    <script src="/jquery/jquery.js"></script>
+    <script src="/jquery.js"></script>
+    <script src="/jquery-ui.js"></script>
+    <script src="/echarts.js"></script>
+    <link href="/jquery-ui.css" rel="stylesheet">
+</head>
+<body>
+<p>Welcome to Kaanh EtherCat</p>
+<button id="getXml" >Get Xml</button>
+<div id="inputTable"></div>
+<button id="saveXml">save Xml</button>
+
+<div id="accordion">
+    <div id="Device_1">Device_1 </div>
+    <div id="xPdo_1"></div>
+    <div id="Device_2">Device_2 </div>
+    <div id="xPdo_2"></div>
+    <div id="Device_3">Device_3 </div>
+    <div id="xPdo_3"></div>
+    <div id="Device_4">Device_4 </div>
+    <div id="xPdo_4"></div>
+    <div id="Device_5">Device_5 </div>
+    <div id="xPdo_5"></div>
+    <div id="Device_6">Device_6 </div>
+    <div id="xPdo_6"></div>
+    <div id="Device_7">Device_7 </div>
+    <div id="xPdo_7"></div>
+    <div id="Device_8">Device_8 </div>
+    <div id="xPdo_8"></div>
+    <div id="Device_9">Device_9 </div>
+    <div id="xPdo_9"></div>
+    <div id="Device_10">Device_10 </div>
+    <div id="xPdo_10"></div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    //hide ui
+    $("#accordion").hide();
+
+    var a=0;
+    // var socket = io.connect('http://127.0.0.1:8081');
+    var socket = io.connect('http://127.0.0.1:8081');
+
+    document.getElementById("getXml").onclick=function(){
+        socket.emit('getxml',"getxml");
+        console.log("go to get xml");
+    }
+
+    var Device=function(){
+        this.DeviceType=45;
+        this.rxPdoList=[];
+        this.txPdoList=[];
+
+    }
+    var RxPdo=function(){
+        this.Index="";
+        this.RxPdoName="";
+        this.Fixed=0;
+        this.EntryList=[];
+    }
+    var TxPdo=function(){
+        this.Index="";
+        this.TxPdoName="";
+        this.Fixed=0;
+        this.EntryList=[];
+    }
+    var Entry =function(){
+        this.EntryName="";
+        this.Index="";
+        this.DataType="";
+        this.BitLeng="";
+    }
+    var DeviceList=[];
+    var xmlDoc;
+
+    socket.on('xmlContent',function (data) {
+        var parser=new DOMParser();
+        xmlDoc=parser.parseFromString(data,"text/xml");
+        var dev_list=xmlDoc.getElementsByTagName("Device");
+        console.log("device no:" + dev_list.length);
+        for (var i=0;i<dev_list.length;i++){
+            var dev_1=new Device();
+            dev_1.DeviceType=dev_list[i].getElementsByTagName("Type")[0].childNodes[0].nodeValue;
+            console.log("device "+(i+1).toString()+"type:"+dev_1.DeviceType);
+            //RxPdo
+            var RxPdoList=dev_list[i].getElementsByTagName("RxPdo");
+            for (var j=0;j<RxPdoList.length;j++){
+                var rxPdo_1=new RxPdo();
+                rxPdo_1.Index=RxPdoList[j].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+
+                rxPdo_1.RxPdoName=RxPdoList[j].getElementsByTagName("Name")[0].childNodes[0].nodeValue;
+                rxPdo_1.Fixed=RxPdoList[j].getAttribute("Fixed");
+                console.log("    rxpdo "+(j+1).toString()+"index:"+rxPdo_1.Index+"; Name:"+rxPdo_1.RxPdoName+";Fixed:"+rxPdo_1.Fixed);
+                var EntryList=RxPdoList[j].getElementsByTagName("Entry");
+                for (var k=0;k<EntryList.length;k++){
+                    var entry_1=new Entry();
+                    entry_1.EntryName=EntryList[k].getElementsByTagName("Name")[0].childNodes[0].nodeValue;
+                    entry_1.Index=EntryList[k].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+                    entry_1.DataType=EntryList[k].getElementsByTagName("DataType")[0].childNodes[0].nodeValue;
+                    entry_1.BitLeng=EntryList[k].getElementsByTagName("BitLen")[0].childNodes[0].nodeValue;
+                    console.log("          Entry "+(k+1).toString()+"Index:"+entry_1.Index+"; Name:"+entry_1.EntryName+"; DataTyepe: "+entry_1.DataType+"; BitLen:"+entry_1.BitLeng);
+
+                    rxPdo_1.EntryList[rxPdo_1.EntryList.length]=entry_1;
+                }
+                dev_1.rxPdoList[dev_1.rxPdoList.length]=rxPdo_1;
+            }
+            //TxPdo
+            var TxPdoList=dev_list[i].getElementsByTagName("TxPdo");
+            for (var j=0;j<TxPdoList.length;j++) {
+                var txPdo_1 = new TxPdo();
+                txPdo_1.Index = TxPdoList[j].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+
+                txPdo_1.TxPdoName = TxPdoList[j].getElementsByTagName("Name")[0].childNodes[0].nodeValue;
+                txPdo_1.Fixed = TxPdoList[j].getAttribute("Fixed");
+                console.log("    txpdo " + (j + 1).toString() + "index:" + txPdo_1.Index + "; Name:" + txPdo_1.RxPdoName + ";Fixed:" + txPdo_1.Fixed);
+                var EntryList_1 = TxPdoList[j].getElementsByTagName("Entry");
+                for (var k = 0; k < EntryList_1.length; k++) {
+                    var entry_2 = new Entry();
+                    entry_2.EntryName = EntryList_1[k].getElementsByTagName("Name")[0].childNodes[0].nodeValue;
+                    entry_2.Index = EntryList_1[k].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+                    entry_2.DataType = EntryList_1[k].getElementsByTagName("DataType")[0].childNodes[0].nodeValue;
+                    entry_2.BitLeng = EntryList_1[k].getElementsByTagName("BitLen")[0].childNodes[0].nodeValue;
+                    console.log("          Entry " + (k + 1).toString() + "Index:" + entry_2.Index + "; Name:" + entry_2.EntryName + "; DataTyepe: " + entry_2.DataType + "; BitLen:" + entry_2.BitLeng);
+
+                    txPdo_1.EntryList[txPdo_1.EntryList.length] = entry_2;
+                }
+                dev_1.txPdoList[dev_1.txPdoList.length] = txPdo_1;
+            }
+            DeviceList[DeviceList.length]=dev_1;
+
+        }
+        console.log(DeviceList.length);
+
+        //input UI
+        $("#accordion").show();
+        for (var i=0;i<DeviceList.length;i++){
+            // $("#Device_"+(i+1).toString()).show();
+            // $("#xPdo_"+(i+1).toString()).show();
+            // $("#Device_"+(i+1).toString()).fadeIn("fast");
+            //$("#xPdo_"+(i+1).toString()).fadeIn("fast");
+            for (var j=0;j<DeviceList[i].rxPdoList.length;j++){
+                // var field_1=document.createElement("fieldset");
+                // field_1.innerHTML="<field></field>";
+
+                var div_3=document.createElement("fieldset");
+                //div_3.innerHTML="<legend>sd</legend>";
+                // $("#xPdo_"+(i+1).toString()).append(div_3);
+                div_3.innerHTML="<div></div>";
+                var div_5=document.createElement("b");
+                div_5.innerText="RxPdo "+(j+1).toString()+"_Name";
+                div_3.appendChild(div_5);
+
+                var input_2=document.createElement("input");
+                input_2.innerHTML="<input/>";
+                input_2.id="input_field_"+"device_"+(i+1).toString()+"_"+"RsPdo_"+(j+1).toString();
+                input_2.placeholder=DeviceList[i].rxPdoList[j].RxPdoName;
+                div_3.appendChild(input_2);
+                var p_=document.createElement("p");
+                p_.innerHTML="<p></p>";
+
+                div_3.appendChild(p_);
+                for (var k=0;k<DeviceList[i].rxPdoList[j].EntryList.length;k++){
+                    var div_4=document.createElement("b");
+                    div_4.innerHTML="<b></b>";
+                    div_4.innerText="Entry"+(k+1).toString()+"_Name";
+                    div_3.appendChild(div_4);
+                    //$("#RxPdo_"+(i+1).toString()).append(div_4);
+
+                    var input_1=document.createElement("input");
+                    input_1.id="input_field_"+"device_"+(i+1).toString()+"_RsPdo_"+(j+1).toString()+"_Entry"+(k+1).toString();
+                    input_1.innerHTML="<input/>";
+                    input_1.placeholder=DeviceList[i].rxPdoList[j].EntryList[k].EntryName.toString();
+                    //console.log(DeviceList[i].rxPdoList[j].EntryList[k].EntryName.toString());
+
+                    div_3.appendChild(input_1);
+                    //$("#RxPdo_"+(i+1).toString()).append(input_1);
+
+                }
+                var p_2=document.createElement("p");
+                p_2.innerHTML="<p></p>";
+                div_3.appendChild(p_2);
+                $("#xPdo_"+(i+1).toString()).append(div_3);
+
+            }
+
+            for (var j=0;j<DeviceList[i].txPdoList.length;j++){
+                var div_3=document.createElement("fieldset");
+                //div_3.innerHTML="<div></div>";
+
+                var div_5=document.createElement("b");
+                div_5.innerText="TxPdo"+(j+1).toString();
+                div_3.appendChild(div_5);
+
+                var input_2=document.createElement("input");
+                input_2.innerHTML="<input/>";
+                input_2.id="input_field_"+"device_"+(i+1).toString()+"_"+"TsPdo_"+(j+1).toString();
+                input_2.placeholder=DeviceList[i].txPdoList[j].TxPdoName;
+                div_3.appendChild(input_2);
+                var p_=document.createElement("p");
+                p_.innerHTML="<p></p>";
+
+                div_3.appendChild(p_);
+                for (var k=0;k<DeviceList[i].txPdoList[j].EntryList.length;k++){
+                    var div_4=document.createElement("b");
+                    div_4.innerHTML="<b></b>";
+                    div_4.innerText="Entry"+(k+1).toString();
+                    div_3.appendChild(div_4);
+                    //$("#RxPdo_"+(i+1).toString()).append(div_4);
+
+                    var input_1=document.createElement("input");
+                    input_1.id="input_field_"+"device_"+(i+1).toString()+"_TsPdo_"+(j+1).toString()+"_Entry"+(k+1).toString();
+                    input_1.innerHTML="<input/>";
+                    input_1.placeholder=DeviceList[i].txPdoList[j].EntryList[k].EntryName.toString();
+                    //console.log(DeviceList[i].txPdoList[j].EntryList[k].EntryName.toString());
+
+                    div_3.appendChild(input_1);
+                    //$("#RxPdo_"+(i+1).toString()).append(input_1);
+
+                }
+                var p_2=document.createElement("p");
+                p_2.innerHTML="<p></p>";
+                div_3.appendChild(p_2);
+                $("#xPdo_"+(i+1).toString()).append(div_3);
+
+            }
+
+        }
+
+        for (var i=DeviceList.length;i<12;i++){
+            $("#Device_"+(i+1).toString()).hide();
+            $("#xPdo_"+(i+1).toString()).hide();
+            //$("#Device_"+i.toString()).fadeOut("fast");
+            //$("#xPdo_"+i.toString()).fadeOut("fast");
+        }
+
+    })
+
+    setInterval(function () {
+        socket.emit('new message',"hello"+(a++).toString());
+        //console.log("hello");
+    },1000);
+    document.getElementById("saveXml").onclick= function() {
+        for (var i=0;i<DeviceList.length;i++){
+
+            for (var j=0;j<DeviceList[i].rxPdoList.length;j++){
+
+                var input_2=document.getElementById("input_field_"+"device_"+(i+1).toString()+"_"+"RsPdo_"+(j+1).toString());
+                var str=input_2.value;
+                if (str !=""&& str!=null){
+                    DeviceList[i].rxPdoList[j].RxPdoName=str;
+                }
+
+                console.log(DeviceList[i].rxPdoList[j].RxPdoName);
+                for (var k=0;k<DeviceList[i].rxPdoList[j].EntryList.length;k++){
+                    var input_1=document.getElementById("input_field_"+"device_"+(i+1).toString()+"_RsPdo_"+(j+1).toString()+"_Entry"+(k+1).toString());
+                    var str_1=input_1.value;
+                    if (str_1 !=""&&str_1!=null){
+                        DeviceList[i].rxPdoList[j].EntryList[k].EntryName=str_1;
+                    }
+
+                    console.log(DeviceList[i].rxPdoList[j].EntryList[k].EntryName);
+                }
+            }
+            for (var j=0;j<DeviceList[i].txPdoList.length;j++){
+
+                var input_2=document.getElementById("input_field_"+"device_"+(i+1).toString()+"_"+"TsPdo_"+(j+1).toString());
+                var str=input_2.value;
+                if (str !=""&& str!=null){
+                    DeviceList[i].txPdoList[j].TxPdoName=str;
+                }
+
+                console.log(DeviceList[i].txPdoList[j].TxPdoName);
+                for (var k=0;k<DeviceList[i].txPdoList[j].EntryList.length;k++){
+                    var input_1=document.getElementById("input_field_"+"device_"+(i+1).toString()+"_TsPdo_"+(j+1).toString()+"_Entry"+(k+1).toString());
+                    var str_1=input_1.value;
+                    if (str_1 !=""&&str_1!=null){
+                        DeviceList[i].txPdoList[j].EntryList[k].EntryName=str_1;
+                    }
+
+                    console.log(DeviceList[i].txPdoList[j].EntryList[k].EntryName);
+                }
+            }
+        }
+
+        var dev_list=xmlDoc.getElementsByTagName("Device");
+        //console.log("device no:" + dev_list.length);
+        for (var i=0;i<dev_list.length;i++){
+            //var dev_1=new Device();
+            //dev_1.DeviceType=dev_list[i].getElementsByTagName("Type")[0].childNodes[0].nodeValue;
+            //console.log("device "+(i+1).toString()+"type:"+dev_1.DeviceType);
+            //RxPdo
+            var RxPdoList=dev_list[i].getElementsByTagName("RxPdo");
+            for (var j=0;j<RxPdoList.length;j++){
+                RxPdoList[j].getElementsByTagName("Name")[0].childNodes[0].nodeValue=DeviceList[i].rxPdoList[j].RxPdoName;
+
+                //
+                // var rxPdo_1=new RxPdo();
+                // rxPdo_1.Index=RxPdoList[j].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+                //
+                // rxPdo_1.RxPdoName=;
+                // rxPdo_1.Fixed=RxPdoList[j].getAttribute("Fixed");
+                // console.log("    rxpdo "+(j+1).toString()+"index:"+rxPdo_1.Index+"; Name:"+rxPdo_1.RxPdoName+";Fixed:"+rxPdo_1.Fixed);
+                var EntryList=RxPdoList[j].getElementsByTagName("Entry");
+                for (var k=0;k<EntryList.length;k++){
+                    EntryList[k].getElementsByTagName("Name")[0].childNodes[0].nodeValue=DeviceList[i].rxPdoList[j].EntryList[k].EntryName;
+                    // var entry_1=new Entry();
+                    // entry_1.EntryName=;
+                    // entry_1.Index=EntryList[k].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+                    // entry_1.DataType=EntryList[k].getElementsByTagName("DataType")[0].childNodes[0].nodeValue;
+                    // entry_1.BitLeng=EntryList[k].getElementsByTagName("BitLen")[0].childNodes[0].nodeValue;
+                    // console.log("          Entry "+(k+1).toString()+"Index:"+entry_1.Index+"; Name:"+entry_1.EntryName+"; DataTyepe: "+entry_1.DataType+"; BitLen:"+entry_1.BitLeng);
+                    //
+                    // rxPdo_1.EntryList[rxPdo_1.EntryList.length]=entry_1;
+                }
+                // dev_1.rxPdoList[dev_1.rxPdoList.length]=rxPdo_1;
+            }
+            //TxPdo
+            var TxPdoList=dev_list[i].getElementsByTagName("TxPdo");
+            for (var j=0;j<TxPdoList.length;j++) {
+                TxPdoList[j].getElementsByTagName("Name")[0].childNodes[0].nodeValue=DeviceList[i].txPdoList[j].TxPdoName;
+                // var txPdo_1 = new TxPdo();
+                // txPdo_1.Index = TxPdoList[j].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+                //
+                // txPdo_1.TxPdoName = ;
+                // txPdo_1.Fixed = TxPdoList[j].getAttribute("Fixed");
+                //console.log("    txpdo " + (j + 1).toString() + "index:" + txPdo_1.Index + "; Name:" + txPdo_1.RxPdoName + ";Fixed:" + txPdo_1.Fixed);
+                var EntryList_1 = TxPdoList[j].getElementsByTagName("Entry");
+                for (var k = 0; k < EntryList_1.length; k++) {
+                    EntryList_1[k].getElementsByTagName("Name")[0].childNodes[0].nodeValue=DeviceList[i].txPdoList[j].EntryList[k].EntryName;
+                    // var entry_2 = new Entry();
+                    //
+                    // entry_2.Index = EntryList_1[k].getElementsByTagName("Index")[0].childNodes[0].nodeValue;
+                    // entry_2.DataType = EntryList_1[k].getElementsByTagName("DataType")[0].childNodes[0].nodeValue;
+                    // entry_2.BitLeng = EntryList_1[k].getElementsByTagName("BitLen")[0].childNodes[0].nodeValue;
+                    // console.log("          Entry " + (k + 1).toString() + "Index:" + entry_2.Index + "; Name:" + entry_2.EntryName + "; DataTyepe: " + entry_2.DataType + "; BitLen:" + entry_2.BitLeng);
+                    //
+                    // txPdo_1.EntryList[txPdo_1.EntryList.length] = entry_2;
+                }
+                //dev_1.txPdoList[dev_1.txPdoList.length] = txPdo_1;
+            }
+            //DeviceList[DeviceList.length]=dev_1;
+
+        }
+        var text = (new XMLSerializer()).serializeToString(xmlDoc);
+        socket.emit("xmlContent",text);
+    }
+
+
+</script>
+<script type="text/javascript">
+    $("#getXml").button();
+    $("#saveXml").button();
+    $( "#accordion" ).accordion({
+        heightStyle:"content",
+        collapsible: "true"
+
+    });
+
+</script>
+</body>
+</html>
