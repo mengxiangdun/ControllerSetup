@@ -13,10 +13,33 @@
 </head>
 <body>
 <p>Welcome to Kaanh Intelligence</p>
+
 <input id="serverIP" placeholder="Enter server ip"/>
 <button id="getXml" >Get Configuration</button>
-<button id="saveXml">Save & Run</button>
+<button id="saveXml">Save</button>
 
+<div id="accordion">
+    <div id="Device_0">Device_0 </div>
+    <div id="xPdo_0"></div>
+    <div id="Device_1">Device_1 </div>
+    <div id="xPdo_1"></div>
+    <div id="Device_2">Device_2 </div>
+    <div id="xPdo_2"></div>
+    <div id="Device_3">Device_3 </div>
+    <div id="xPdo_3"></div>
+    <div id="Device_4">Device_4 </div>
+    <div id="xPdo_4"></div>
+    <div id="Device_5">Device_5 </div>
+    <div id="xPdo_5"></div>
+    <div id="Device_6">Device_6 </div>
+    <div id="xPdo_6"></div>
+    <div id="Device_7">Device_7 </div>
+    <div id="xPdo_7"></div>
+    <div id="Device_8">Device_8 </div>
+    <div id="xPdo_8"></div>
+    <div id="Device_9">Device_9 </div>
+    <div id="xPdo_9"></div>
+</div>
 <table id="InputTable_Temp" border="1" style="width: 600px">
     <tr bgcolor="#ffe4c4">
         <td style="width: 40%">Attribute Name</td>
@@ -29,6 +52,7 @@
 <script>
 
     $("#InputTable_Temp").hide();
+    $("#accordion").hide();
     var xmlDoc;
     var setupList=[];
     var serverIP="ws://127.0.0.1:5866";
@@ -38,8 +62,6 @@
         this.attribute_name=attribute_name;
         this.node_name=node_name;
         this.parent_node_name=parent_node_name;
-
-
     }
 
     function GetSetupList() {
@@ -54,18 +76,22 @@
         var str=document.getElementById("serverIP").value;
         if (str!=""&&str!=null){
             serverIP="ws://"+str+":5866";
-            console.log(serverIP);
+            // console.log(serverIP);
         }
     }
 
     document.getElementById("getXml").onclick=function(){
-        $("#InputTable_Temp").show();
+        //$("#InputTable_Temp").show();
         SendCmd("2&1&0&0&0&GetXml --check_none");
     }
 
-    var input_id=0;
+    var input_id=-1;
+    var ethercat_id=-1;
+    var sm_id=-1;
+    var pdo_id=-1;
+    var pdo_entry_id=-1;
 
-    function printNodeName(node, name) {
+    function printNodeName__(node, name) {
         if (node.nodeType == 1){
             // console.log(node.nodeName);
             name+=node.nodeName+":";
@@ -97,35 +123,458 @@
     }
     }
 
+    function printNodeName(node, name) {
+        if (node.nodeType == 1){
+            // console.log(node.nodeName);
+            // console.log(node.getAttribute("type"));
+            name+=node.nodeName+":";
+            //type = EthercatMotion
+            if (node.getAttribute("type")=="PdoEntry"){
+                pdo_entry_id++;
+                // console.log("pdo Entry id: "+pdo_entry_id.toString());
+                // console.log("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_table_"+pdo_id.toString());
+                var t_1=document.getElementById("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_table_"+pdo_id.toString());
+                var r=t_1.insertRow(-1);
+                var c=r.insertCell(0);
+                // c.innerHTML = node.nodeName;
+                var id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_"+pdo_entry_id.toString();
+
+                c.innerHTML ="<input id=" + id_str+"_name"+" value="+node.nodeName+" style='width: 80px'/>";
+
+                c = r.insertCell(1);
+                c.innerHTML ="<input id=" + id_str+"_index"+" value="+node.getAttribute('index')+" style='width: 80px'/>";
+                // console.log(c.innerHTML);
+                c = r.insertCell(-1);
+                c.innerHTML ="<input id="+id_str+"_subindex"+" value="+node.getAttribute('subindex')+" style='width: 80px'/>";
+                c = r.insertCell(-1);
+                c.innerHTML ="<input id="+id_str+"_size"+" value="+node.getAttribute('size')+" style='width: 60px'/>";
+
+            }
+
+            if (node.getAttribute("type")=="Pdo"){
+                pdo_id++;
+                pdo_entry_id=-1;
+                // console.log("pdo id: "+pdo_id.toString());
+                var div_pdo=document.createElement("fieldset");
+                //div_pdo.innerText="pdo_"+pdo_id.toString()+" Name:"+node.nodeName+"  ";
+                var div_Pdo_index=document.createElement("b");
+                div_Pdo_index.innerText="index";
+                div_pdo.appendChild(div_Pdo_index);
+                var div_input=document.createElement("input");
+                div_input.innerHTML="<input/>";
+                id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString();
+
+                div_input.id=id_str+"_index";
+                div_input.value=node.getAttribute("index");
+                div_pdo.appendChild(div_input);
+                document.getElementById("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()).appendChild(div_pdo);
+
+                var  t;
+                t = document.createElement('table');
+                t.id="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+ "_pdoEntry_table_"+pdo_id.toString();
+                var r_ = t.insertRow(0);
+                var c_ = r_.insertCell(0);
+                c_.innerHTML = "PdoEntryName";
+                c_ = r_.insertCell(1);
+                c_.innerHTML = "index";
+                c_ = r_.insertCell(2);
+                c_.innerHTML = "subindex";
+                c_ = r_.insertCell(-1);
+                c_.innerHTML = "size";
+                //document.getElementById("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()).appendChild(t);
+                div_pdo.appendChild(t);
+
+                //$("#xPdo_"+(ethercat_id).toString()).append(div_pdo);
+
+            }
+
+            if (node.getAttribute("type")=="SyncManager"){
+                sm_id++;
+                pdo_id=-1;
+                // console.log("sm id: "+sm_id.toString());
+                var div_syncm=document.createElement("fieldset");
+                div_syncm.id="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString();
+                div_syncm.innerText="sm_"+sm_id.toString();
+
+                var btn_addPdo=document.createElement("div");
+                btn_addPdo.innerHTML="<button>Add Pdo</button>";
+                btn_addPdo.onclick=function(){
+                    var pdo_node=xmlDoc.createElement("index_1a");
+                    node.appendChild(pdo_node);
+                    pdo_node.setAttribute("type","Pdo");
+                    pdo_id++;
+                    pdo_entry_id=-1;
+                    // console.log("pdo id: "+pdo_id.toString());
+
+                    var div_pdo=document.createElement("fieldset");
+                    //div_pdo.innerText="pdo_"+pdo_id.toString()+" Name:"+node.nodeName+"  ";
+                    var div_Pdo_index=document.createElement("b");
+                    div_Pdo_index.innerText="index";
+                    div_pdo.appendChild(div_Pdo_index);
+                    var div_input=document.createElement("input");
+                    div_input.innerHTML="<input/>";
+                    id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString();
+
+                    div_input.id=id_str+"_index";
+                    div_input.value=node.getAttribute("index");
+                    div_pdo.appendChild(div_input);
+                    div_syncm.appendChild(div_pdo);
+                    // document.getElementById("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()).appendChild(div_pdo);
+
+                    var  t;
+                    t = document.createElement('table');
+                    t.id="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+ "_pdoEntry_table_"+pdo_id.toString();
+                    var r_ = t.insertRow(0);
+                    var c_ = r_.insertCell(0);
+                    c_.innerHTML = "PdoEntryName";
+                    c_ = r_.insertCell(1);
+                    c_.innerHTML = "index";
+                    c_ = r_.insertCell(2);
+                    c_.innerHTML = "subindex";
+                    c_ = r_.insertCell(-1);
+                    c_.innerHTML = "size";
+                    //document.getElementById("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()).appendChild(t);
+                    div_pdo.appendChild(t);
+
+                    //var pdoEntryName=["status_word","mode"]
+                    for (var i=0;i<5;i++){
+                        var pdoEntry_node=xmlDoc.createElement("status_word");
+                        pdo_node.appendChild(pdoEntry_node);
+                        pdoEntry_node.setAttribute("type","PdoEntry");
+
+                        pdo_entry_id++;
+                        // console.log("pdo Entry id: "+pdo_entry_id.toString());
+                        // console.log("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_table_"+pdo_id.toString());
+                        var t_1=document.getElementById("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_table_"+pdo_id.toString());
+                        var r=t_1.insertRow(-1);
+                        var c=r.insertCell(0);
+                        //c.innerHTML = "status_word";
+                        id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_"+pdo_entry_id.toString();;
+                        c.innerHTML ="<input id=" + id_str +"_name"+" value="+pdoEntry_node.nodeName+" style='width: 80px'/>";
+
+                        c = r.insertCell(1);
+                        var id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_"+pdo_entry_id.toString();
+                        c.innerHTML ="<input id=" + id_str+"_index"+" value="+node.getAttribute('index')+" style='width: 80px'/>";
+                        // console.log(c.innerHTML);
+                        c = r.insertCell(-1);
+                        c.innerHTML ="<input id="+id_str+"_subindex"+" value="+node.getAttribute('subindex')+" style='width: 80px'/>";
+                        c = r.insertCell(-1);
+                        c.innerHTML ="<input id="+id_str+"_size"+" value="+node.getAttribute('size')+" style='width: 60px'/>";
+
+                    }
+
+
+
+                }
+                div_syncm.appendChild(btn_addPdo);
+
+                document.getElementById("motion_"+ethercat_id.toString()).appendChild(div_syncm);
+
+
+            }
+
+            if (node.getAttribute("type")=="EthercatMotion"){
+                ethercat_id++;
+                sm_id=-1;
+                // console.log("ethercat id: "+ethercat_id);
+                //input UI
+                $("#accordion").show();
+
+                var div_3=document.createElement("fieldset");
+                div_3.id="motion_"+ethercat_id.toString();
+                div_3.innerHTML="<div></div>";
+                div_3.innerText="Motion_"+ethercat_id.toString();
+                // var div_5=document.createElement("b");
+                // div_5.innerText="Motion "+(ethercat_id).toString()+"_Name";
+                // div_3.appendChild(div_5);
+
+                var motion_table=document.createElement("table");
+                var motion_table_row=motion_table.insertRow(-1);
+                id_str="motion_"+ethercat_id.toString();
+                motion_table_row.innerHTML="<td>phy_id</td><td><input id="+id_str+"_phy_id"+" value="+node.getAttribute('phy_id')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>vendor_id</td><td><input id="+id_str+"_vendor_id"+" value="+node.getAttribute('vendor_id')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>product_code</td><td><input id="+id_str+"_product_code"+" value="+node.getAttribute('product_code')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>revision_num</td><td><input id="+id_str+"_revision_num"+" value="+node.getAttribute('revision_num')+" style='width: 100px' /></td>";
+
+                motion_table_row=motion_table.insertRow(-1);
+                motion_table_row.innerHTML="<td>dc_assign_activate</td><td><input id="+id_str+"_dc_assign_activate"+" value="+node.getAttribute('dc_assign_activate')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>max_pos</td><td><input id="+id_str+"_max_pos"+" value="+node.getAttribute('max_pos')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>min_pos</td><td><input id="+id_str+"_min_pos"+" value="+node.getAttribute('min_pos')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>max_vel</td><td><input id="+id_str+"_max_vel"+" value="+node.getAttribute('max_vel')+" style='width: 100px' /></td>";
+
+                motion_table_row=motion_table.insertRow(-1);
+                motion_table_row.innerHTML="<td>min_vel</td><td><input id="+id_str+"_min_vel"+" value="+node.getAttribute('min_vel')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>max_acc</td><td><input id="+id_str+"_max_acc"+" value="+node.getAttribute('max_acc')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>min_acc</td><td><input id="+id_str+"_min_acc"+" value="+node.getAttribute('min_acc')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>max_pos_following_error</td><td><input id="+id_str+"_max_pos_following_error"+" value="+node.getAttribute('max_pos_following_error')+" style='width: 100px' /></td>";
+
+                motion_table_row=motion_table.insertRow(-1);
+                motion_table_row.innerHTML="<td>max_vel_following_error</td><td><input id="+id_str+"_max_vel_following_error"+" value="+node.getAttribute('max_vel_following_error')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>pos_factor</td><td><input id="+id_str+"_pos_factor"+" value="+node.getAttribute('pos_factor')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>pos_offset</td><td><input id="+id_str+"_pos_offset"+" value="+node.getAttribute('pos_offset')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>home_pos</td><td><input id="+id_str+"_home_pos"+" value="+node.getAttribute('home_pos')+" style='width: 100px' /></td>";
+
+                // motion_table_row.innerHTML="<td>phy_id</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('phy_id')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>vendor_id</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('vendor_id')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>product_code</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('product_code')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>revision_num</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('revision_num')+" style='width: 100px' /></td>";
+                //
+                // motion_table_row=motion_table.insertRow(-1);
+                // motion_table_row.innerHTML="<td>dc_assign_activate</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('dc_assign_activate')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_pos')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>min_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_pos')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_vel</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_vel')+" style='width: 100px' /></td>";
+                //
+                // motion_table_row=motion_table.insertRow(-1);
+                // motion_table_row.innerHTML="<td>min_vel</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_vel')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_acc</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_acc')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>min_acc</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_acc')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_pos_following_error</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_pos_following_error')+" style='width: 100px' /></td>";
+                //
+                // motion_table_row=motion_table.insertRow(-1);
+                // motion_table_row.innerHTML="<td>max_vel_following_error</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_vel_following_error')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>pos_factor</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('pos_factor')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>pos_offset</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('pos_offset')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>home_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('home_pos')+" style='width: 100px' /></td>";
+
+                div_3.appendChild(motion_table);
+
+
+
+                var p_=document.createElement("p");
+                p_.innerHTML="<p></p>";
+
+                div_3.appendChild(p_);
+
+                var p_2=document.createElement("p");
+                p_2.innerHTML="<p></p>";
+                div_3.appendChild(p_2);
+                $("#xPdo_"+(ethercat_id).toString()).append(div_3);
+
+                $("#Device_"+(ethercat_id).toString()).show();
+                $("#xPdo_"+(ethercat_id).toString()).show();
+                for (var i=ethercat_id;i<12;i++){
+                    $("#Device_"+(i+1).toString()).hide();
+                    $("#xPdo_"+(i+1).toString()).hide();
+
+                }
+
+            }
+
+            if (node.getAttribute("type")=="EthercatSlave"){
+                ethercat_id++;
+                sm_id=-1;
+                // console.log("ethercat id: "+ethercat_id);
+                //input UI
+                $("#accordion").show();
+
+                var div_3=document.createElement("fieldset");
+                div_3.id="motion_"+ethercat_id.toString();
+                div_3.innerHTML="<div></div>";
+                div_3.innerText="Slave_"+ethercat_id.toString();
+                // var div_5=document.createElement("b");
+                // div_5.innerText="Motion "+(ethercat_id).toString()+"_Name";
+                // div_3.appendChild(div_5);
+
+
+                var motion_table=document.createElement("table");
+                var motion_table_row=motion_table.insertRow(-1);
+                id_str="motion_"+ethercat_id.toString();
+                motion_table_row.innerHTML="<td>phy_id</td><td><input id="+id_str+"_phy_id"+" value="+node.getAttribute('phy_id')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>vendor_id</td><td><input id="+id_str+"_vendor_id"+" value="+node.getAttribute('vendor_id')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>product_code</td><td><input id="+id_str+"_product_code"+" value="+node.getAttribute('product_code')+" style='width: 100px' /></td>";
+                motion_table_row.innerHTML+="<td>revision_num</td><td><input id="+id_str+"_revision_num"+" value="+node.getAttribute('revision_num')+" style='width: 100px' /></td>";
+
+                motion_table_row=motion_table.insertRow(-1);
+                motion_table_row.innerHTML="<td>dc_assign_activate</td><td><input id="+id_str+"_dc_assign_activate"+" value="+node.getAttribute('dc_assign_activate')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_pos')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>min_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_pos')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_vel</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_vel')+" style='width: 100px' /></td>";
+                //
+                // motion_table_row=motion_table.insertRow(-1);
+                // motion_table_row.innerHTML="<td>min_vel</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_vel')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_acc</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_acc')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>min_acc</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_acc')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>max_pos_following_error</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_pos_following_error')+" style='width: 100px' /></td>";
+                //
+                // motion_table_row=motion_table.insertRow(-1);
+                // motion_table_row.innerHTML="<td>max_vel_following_error</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_vel_following_error')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>pos_factor</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('pos_factor')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>pos_offset</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('pos_offset')+" style='width: 100px' /></td>";
+                // motion_table_row.innerHTML+="<td>home_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('home_pos')+" style='width: 100px' /></td>";
+
+                div_3.appendChild(motion_table);
+
+                var btn_1=document.createElement("div");
+                //btn_1.innerText="MotionConfig";
+                //btn_1.id="btn_"+ethercat_id.toString();
+                //$("#"+"btn_"+ethercat_id.toString()).button();
+                //btn_1.button();
+                btn_1.innerHTML="<button >MotionConfig</button>"
+                btn_1.onclick=function () {
+                    if (node.getAttribute("type")!="EthercatMotion") {
+                        node.setAttribute("type","EthercatMotion");
+
+
+                        motion_table_row.innerHTML+="<td>max_pos</td><td><input id="+id_str+"_max_pos"+" value="+node.getAttribute('max_pos')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>min_pos</td><td><input id="+id_str+"_min_pos"+" value="+node.getAttribute('min_pos')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>max_vel</td><td><input id="+id_str+"_max_vel"+" value="+node.getAttribute('max_vel')+" style='width: 100px' /></td>";
+
+                        motion_table_row=motion_table.insertRow(-1);
+                        motion_table_row.innerHTML="<td>min_vel</td><td><input id="+id_str+"_min_vel"+" value="+node.getAttribute('min_vel')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>max_acc</td><td><input id="+id_str+"_max_acc"+" value="+node.getAttribute('max_acc')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>min_acc</td><td><input id="+id_str+"_min_acc"+" value="+node.getAttribute('min_acc')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>max_pos_following_error</td><td><input id="+id_str+"_max_pos_following_error"+" value="+node.getAttribute('max_pos_following_error')+" style='width: 100px' /></td>";
+
+                        motion_table_row=motion_table.insertRow(-1);
+                        motion_table_row.innerHTML="<td>max_vel_following_error</td><td><input id="+id_str+"_max_vel_following_error"+" value="+node.getAttribute('max_vel_following_error')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>pos_factor</td><td><input id="+id_str+"_pos_factor"+" value="+node.getAttribute('pos_factor')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>pos_offset</td><td><input id="+id_str+"_pos_offset"+" value="+node.getAttribute('pos_offset')+" style='width: 100px' /></td>";
+                        motion_table_row.innerHTML+="<td>home_pos</td><td><input id="+id_str+"_home_pos"+" value="+node.getAttribute('home_pos')+" style='width: 100px' /></td>";
+
+                        // motion_table_row.innerHTML+="<td>max_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_pos')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>min_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_pos')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>max_vel</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_vel')+" style='width: 100px' /></td>";
+                        //
+                        // motion_table_row=motion_table.insertRow(-1);
+                        // motion_table_row.innerHTML="<td>min_vel</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_vel')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>max_acc</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_acc')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>min_acc</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('min_acc')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>max_pos_following_error</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_pos_following_error')+" style='width: 100px' /></td>";
+                        //
+                        // motion_table_row=motion_table.insertRow(-1);
+                        // motion_table_row.innerHTML="<td>max_vel_following_error</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('max_vel_following_error')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>pos_factor</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('pos_factor')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>pos_offset</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('pos_offset')+" style='width: 100px' /></td>";
+                        // motion_table_row.innerHTML+="<td>home_pos</td><td><input id="+(input_id++).toString()+" value="+node.getAttribute('home_pos')+" style='width: 100px' /></td>";
+
+                    }
+
+
+                }
+                div_3.appendChild(btn_1);
+
+
+                var p_=document.createElement("p");
+                p_.innerHTML="<p></p>";
+
+                div_3.appendChild(p_);
+
+                var p_2=document.createElement("p");
+                p_2.innerHTML="<p></p>";
+                div_3.appendChild(p_2);
+                $("#xPdo_"+(ethercat_id).toString()).append(div_3);
+
+                $("#Device_"+(ethercat_id).toString()).show();
+                $("#xPdo_"+(ethercat_id).toString()).show();
+                for (var i=ethercat_id;i<12;i++){
+                    $("#Device_"+(i+1).toString()).hide();
+                    $("#xPdo_"+(i+1).toString()).hide();
+
+                }
+
+            }
+
+            if (node.hasChildNodes()) {
+                var sonNodes = node.childNodes;
+                for (var j = 0; j < sonNodes.length; j++) {
+                    if (sonNodes[j].nodeType == 1) {
+                        printNodeName(sonNodes[j],name);
+                    }
+                }
+            }
+        }
+    }
+
     function CollectNodeName(node, name) {
         if (node.nodeType == 1){
             // console.log(node.nodeName);
             name+=node.nodeName+":";
-            for (var i=0;i<setupList.length;i++){
-                if (node.nodeName==setupList[i].node_name && node.parentNode.nodeName==setupList[i].parent_node_name){
-                    console.log("node ok "+node.nodeName);
-                    if (node.getElementsByTagName(setupList[i].attribute_name)!=null){
-                        // console.log("attribute ok "+setupList[i].attribute_name+node.getAttribute(setupList[i].attribute_name));
-                        //var attri_value=node.getAttribute(setupList[i].attribute_name);
-                        var ui_id="input_"+(input_id++).toString();
+            if (node.getAttribute("type")=="PdoEntry"){
+                pdo_entry_id++;
+                // console.log("pdo Entry id: "+pdo_entry_id.toString());
+                // console.log("motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_table_"+pdo_id.toString());
 
-                        var attri_value=$("#"+ui_id).val();
-                        console.log("##"+$("#"+ui_id).val());
+                id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString()+"_pdoEntry_"+pdo_entry_id.toString();
 
-                        console.log("text:"+$("#input_1").text());
-                        console.log("##"+$("#input_1").val());
-                        console.log(ui_id+":"+ attri_value);
-                        node.setAttribute(setupList[i].attribute_name,attri_value);
+                console.log(id_str+"_name");
+                console.log($("#"+id_str+"_name").val());
+                var re_node=xmlDoc.createElement($("#"+id_str+"_name").val());
+                re_node.setAttribute("type","PdoEntry");
+                node.parentNode.replaceChild(re_node,node);
 
-                        //生成UI并赋值
-                        // var processName=name+":"+setupList[i].parent_node_name+":"+setupList[i].node_name+":"+setupList[i].attribute_name;
-                        // var processName=name+":"+setupList[i].attribute_name;
-                        // var tr="<tr><td>"+processName+"</td><td><input value="+attri_value+" id='"+ui_id[0]+"'/></td></tr>"
-                        // //console.log(tr);
-                        // $("#InputTable_Temp").append(tr);
-                    }
-                }
+                re_node.setAttribute("index",$("#"+id_str+"_index").val());
+                console.log(id_str+"_index");
+                re_node.setAttribute("subindex",$("#"+id_str+"_subindex").val());
+                re_node.setAttribute("size",$("#"+id_str+"_size").val());
+
+                // node.setAttribute("index",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("subindex",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("size",$("#"+(input_id++).toString()).val());
+
+
             }
+            if (node.getAttribute("type")=="Pdo"){
+                pdo_id++;
+                pdo_entry_id=-1;
+                // console.log("pdo id: "+pdo_id.toString());
+                id_str="motion_"+ethercat_id.toString()+"_syncm_"+sm_id.toString()+"_pdo_"+pdo_id.toString();
+                node.setAttribute("index",$("#"+id_str+"_index").val());
+
+                // node.setAttribute("index",$("#"+(input_id++).toString()).val());
+
+
+            }
+            if (node.getAttribute("type")=="SyncManager"){
+                sm_id++;
+                pdo_id=-1;
+                // console.log("sm id: "+sm_id.toString());
+
+
+            }
+            if (node.getAttribute("type")=="EthercatMotion"){
+                ethercat_id++;
+                sm_id=-1;
+                // console.log("ethercat id: "+ethercat_id);
+
+                var id_str="motion_"+ethercat_id.toString();
+                node.setAttribute("phy_id",$("#"+id_str+"_phy_id").val());
+                node.setAttribute("vendor_id",$("#"+id_str+"_vendor_id").val());
+                node.setAttribute("product_code",$("#"+id_str+"_product_code").val());
+                node.setAttribute("revision_num",$("#"+id_str+"_revision_num").val());
+                node.setAttribute("dc_assign_activate",$("#"+id_str+"_dc_assign_activate").val());
+                node.setAttribute("max_pos",$("#"+id_str+"_max_pos").val());
+                node.setAttribute("min_pos",$("#"+id_str+"_min_pos").val());
+                node.setAttribute("max_vel",$("#"+id_str+"_max_vel").val());
+                node.setAttribute("min_vel",$("#"+id_str+"_min_vel").val());
+                node.setAttribute("max_acc",$("#"+id_str+"_max_acc").val());
+                node.setAttribute("min_acc",$("#"+id_str+"_min_acc").val());
+                node.setAttribute("max_pos_following_error",$("#"+id_str+"_max_pos_following_error").val());
+                node.setAttribute("max_vel_following_error",$("#"+id_str+"_max_vel_following_error").val());
+                node.setAttribute("pos_factor",$("#"+id_str+"_pos_factor").val());
+                node.setAttribute("pos_offset",$("#"+id_str+"_pos_offset").val());
+                node.setAttribute("home_pos",$("#"+id_str+"_home_pos").val());
+                // node.setAttribute("phy_id",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("vendor_id",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("product_code",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("revision_num",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("dc_assign_activate",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("max_pos",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("min_pos",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("max_vel",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("min_vel",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("max_acc",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("min_acc",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("max_pos_following_error",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("max_vel_following_error",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("pos_factor",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("pos_offset",$("#"+(input_id++).toString()).val());
+                // node.setAttribute("home_pos",$("#"+(input_id++).toString()).val());
+
+
+
+            }
+
             if (node.hasChildNodes()) {
                 var sonNodes = node.childNodes;
                 for (var j = 0; j < sonNodes.length; j++) {
@@ -142,49 +591,23 @@
         console.log(data);
         var parser=new DOMParser();
         xmlDoc=parser.parseFromString(data,"text/xml");
+        //master
+        var master_node=xmlDoc.getElementsByTagName("master");
+        printNodeName(master_node[0],"");
+
         //TraverseNodes(xmlDoc.documentElement);
-        printNodeName(xmlDoc.documentElement,"");
-        var x=xmlDoc.documentElement.childNodes;
-        console.log(x.length);
+        //printNodeName(xmlDoc.documentElement,"");
+        //var x=xmlDoc.documentElement.childNodes;
+        //console.log(x.length);
 
     }
 
     document.getElementById("saveXml").onclick= function() {
-
-        // for (var i=0;i<setupList.length;i++){
-        //     var CH_list=xmlDoc.getElementsByTagName("CmdList");
-        //     var para_value=[];
-        //     var ui_id=[];
-        //     for (var j=0;j<CH_list.length;j++){
-        //         //获得UI值
-        //         ui_id[j]="ch"+(j+1).toString()+"_"+setupList[i].cmdNum+"_"+setupList[i].cmdName+"_"+setupList[i].paraName;
-        //         console.log(ui_id[j]);
-        //
-        //         para_value[j]=$("#"+ui_id[j]).val();
-        //         console.log(para_value[j]);
-        //
-        //
-        //         var cmdList=CH_list[j].getElementsByTagName("cmd");
-        //         //获得命令
-        //         var cmd_toSet=cmdList[setupList[i].cmdNum-1].childNodes[0].nodeValue;
-        //         //解析命令并赋值新参数
-        //         var cmd_toSet_new="";
-        //
-        //         var cmd_paraList=cmd_toSet.split(" ");
-        //         for (var k = 0; k < cmd_paraList.length;k++){
-        //             if (cmd_paraList[k].indexOf("--"+setupList[i].paraName+"=")>-1 || cmd_paraList[k].indexOf("-"+setupList[i].paraName_abra+"=")>-1){
-        //                 //para_value[j]=cmd_paraList[k].split("=")[1];
-        //                 var newParaStr=cmd_paraList[k].split("=")[0]+"="+para_value[j];
-        //                 cmd_paraList[k]=newParaStr;
-        //             }
-        //             cmd_toSet_new+=cmd_paraList[k]+" ";
-        //         }
-        //         cmdList[setupList[i].cmdNum-1].childNodes[0].nodeValue=cmd_toSet_new;
-        //         console.log(cmd_toSet_new);
-        //     }
-        // }
-
-        input_id=0;
+        input_id=-1;
+        ethercat_id=-1;
+        sm_id=-1;
+        pdo_id=-1;
+        pdo_entry_id=-1;
         CollectNodeName(xmlDoc.documentElement,"");
         var text = (new XMLSerializer()).serializeToString(xmlDoc);
         console.log(text);
@@ -321,6 +744,8 @@
 
 
 <script type="text/javascript">
+    $("#btn_0").button();
+    $("#btn_1").button();
     $("#getXml").button();
     $("#saveXml").button();
     $("#run").button();

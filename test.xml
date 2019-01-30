@@ -1,7 +1,7 @@
 <object type="ControlServer">
     <master type="EthercatController">
         <slave_pool type="SlavePoolObject">
-            <m0 type="EthercatMotion" phy_id="0" vendor_id="0x000002e1" product_code="0x00000000" revision_num="0x00029001" dc_assign_activate="0x00000300" max_pos="2.96706" min_pos="-2.96706" max_vel="5.4105210000000001" min_vel="-5.4105210000000001" max_acc="26.179939000000001" min_acc="-26.179939000000001" max_pos_following_error="0.10000000000000001" max_vel_following_error="0.5" pos_factor="1689721.292776" pos_offset="0" home_pos="0">
+            <m0 type="EthercatSlave" phy_id="1" vendor_id="0x000002e1" product_code="0x00000000" revision_num="0x00029001" dc_assign_activate="0x00000300" >
                 <sm_pool type="SyncManagerPoolObject">
                     <sm type="SyncManager" is_tx="false"/>
                     <sm type="SyncManager" is_tx="true"/>
@@ -240,6 +240,28 @@
         <calibrator_pool type="CalibratorPoolElement"/>
         <plan_pool type="ElementPoolElement"/>
     </model>
+
+    <interface_root type="InterfaceRoot">
+        <interface_pool_object type="InterfacePoolObject">
+            <panel type="panel" text="moveJ" id="id_1">
+                <input type="Input"  parameter="-m" default="" id="id_2"/>
+                <input type="Input" parameter="--pos" default="" id="id_3"/>
+                <button type="Button" text="MoveJ" id="id_4" cmd="MoveJ -m=${id_2} --pos=${id_3}"/>
+            </panel>
+            <panel type="panel" text="moveJ" id="id_5">
+                <input type="Input" parameter="-m" default="" id="id_6"/>
+                <input type="Input" parameter="--pos" default="" id="id_7"/>
+                <button type="Button" text="MoveJ" id="id_8" cmd="MoveJ -m=${id_6} --pos=${id_7}"/>
+            </panel>
+            <panel type="panel" text="GetMotion" id="id_9">
+                <input type="Input" parameter="-m" default="" id="id_10"/>
+                <input type="Input" parameter="--pos" default="" id="id_11"/>
+                <button type="Button" text="GetMotion" id="id_12" cmd="GetMotion -m=${id_10} --pos=${id_11}" return_attached="Motion -m=${id_13}"/>
+                <label type="Label" text="GetMotion" id="id_13"/>
+            </panel>
+        </interface_pool_object>
+    </interface_root>
+
     <plan_root type="PlanRoot">
         <plan_pool_object type="PlanPoolObject">
             <enable_plan type="EnablePlan">

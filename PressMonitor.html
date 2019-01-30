@@ -406,8 +406,6 @@ console.log(serverIP);
         }
     }
 
-
-
     function ReadFromServer(){
         switch (ws.readyState) {
             case WebSocket.CONNECTING:
@@ -428,7 +426,9 @@ console.log(serverIP);
 
 
     }
+
     buildWS();
+
     setInterval(ReadFromServer,10);
 
     document.getElementById("serverIP").onchange=function () {
@@ -450,10 +450,12 @@ console.log(serverIP);
     // echart
     //region
     var dom = document.getElementById("chart_dom");
-    var myChart = echarts.init(dom);
-    //var app = {};
-    option = null;
 
+    var myChart = echarts.init(dom);
+
+    //var app = {};
+
+    option = null;
 
     option = {
         xAxis: {
